@@ -1,0 +1,54 @@
+#dnaOne {
+    grid-column: 1/3;
+    grid-row: 1/4;
+    width: 33.2vw;
+    height: 100vh;
+    position: relative; /* Add this to establish a positioning context */
+    display: none;
+}
+
+#dnaOne img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+}
+
+#dnaOne::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 1), rgba(255, 255, 255, .5)); /* Adjust the colors and opacity as needed */
+    pointer-events: none; /* Allows interaction with the image beneath the overlay */
+}
+
+#dnaTwo {
+    grid-column: 1/3;
+    grid-row: 4/7;
+    width: 33.2vw;
+    height: 100vh;
+    position: relative; /* Add this to establish a positioning context */
+    display: none;
+}
+
+#dnaTwo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    transform: scale(-1, 1);
+}
+
+#dnaTwo::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0)); /* Adjust the colors and opacity as needed */
+    pointer-events: none; /* Allows interaction with the image beneath the overlay */
+}
