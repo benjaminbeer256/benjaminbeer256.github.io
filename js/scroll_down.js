@@ -1,5 +1,5 @@
 count = 0;
-document.addEventListener("wheel", (event) => {
+document.addEventListener("wheel", (e) => {
     count += 3;
     strips = document.getElementsByClassName('colorStrip');
     if (count < 99){
@@ -19,5 +19,7 @@ document.addEventListener("wheel", (event) => {
         document.getElementById('scrollDownText').style.display = "none";
         document.getElementById('dnaOne').style.display = "block";
         document.getElementById('dnaTwo').style.display = "block";
+        document.getElementById('matrix').style.display = "block";
+        generate_matrix();
     }
 })
