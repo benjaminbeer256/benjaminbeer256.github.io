@@ -1,3 +1,6 @@
+if (!window.chrome){
+    alert("Please use Google Chrome for the best experience");
+}
 count = 0;
 document.addEventListener("wheel", (e) => {
     count += 3;

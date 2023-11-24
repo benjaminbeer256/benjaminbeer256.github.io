@@ -35,12 +35,15 @@
 .appThing{
     justify-self:center;
     align-self:center;
-    height:12vw;
+    height:9vw;
     border-radius:25px;
+    z-index: 100;
+    filter: drop-shadow(0 0 0.5rem black);
+    pointer-events: fill;
 }
 
 .appThing:hover{
-    -webkit-animation:scale-up-center .4s cubic-bezier(.39,.575,.565,1) both;animation:scale-up-center .4s cubic-bezier(.39,.575,.565,1) both}@-webkit-keyframes scale-up-center{0%{-webkit-transform:scale(1);transform:scale(1)}100%{-webkit-transform:scale(1);transform:scale(1)}}@keyframes scale-up-center{0%{-webkit-transform:scale(1);transform:scale(1)}100%{-webkit-transform:scale(1.2);transform:scale(1.2)}
+    -webkit-animation:scale-up-center .2s cubic-bezier(.39,.575,.565,1) both;animation:scale-up-center .2s cubic-bezier(.39,.575,.565,1) both}@-webkit-keyframes scale-up-center{0%{-webkit-transform:scale(1);transform:scale(1)}100%{-webkit-transform:scale(1);transform:scale(1)}}@keyframes scale-up-center{0%{-webkit-transform:scale(1);transform:scale(1)}100%{-webkit-transform:scale(1.1);transform:scale(1.1)}
 }
 
 #scriptManagerFav{
@@ -65,4 +68,19 @@
 #btiVav{
     grid-column: 1;
     grid-row: 6;
+}
+
+#sciencenterFav{
+    grid-column: 2;
+    grid-row: 6;
+}
+
+#coderedFav{
+    grid-column: 2;
+    grid-row: 4;
+}
+
+#devteamFav{
+    grid-column: 1;
+    grid-row: 5;
 }
