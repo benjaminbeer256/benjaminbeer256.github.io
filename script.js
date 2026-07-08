@@ -10,7 +10,6 @@ const ctx = canvas.getContext('2d');
 let img = new Image();
 let imgLoaded = false;
 let lastSize = { width: 0, height: 0 };
-let previewObjectUrl = null;
 
 img.onload = () => {
   imgLoaded = true;
@@ -33,23 +32,13 @@ img.src = IMG_SRC;
 function resizeCanvasToImage(){
   const containerWidth = document.querySelector('.canvas-wrap').clientWidth;
   const maxHeight = Math.max(50, Math.floor(window.innerHeight * 0.75));
-  const imageRatio = img.width / img.height;
+  const nativeWidth = img.naturalWidth || img.width;
+  const nativeHeight = img.naturalHeight || img.height;
+  const scale = Math.min(1, containerWidth / nativeWidth, maxHeight / nativeHeight);
 
-  // start from the image's native dimensions, then fit to available width/height
-  let targetWidth = Math.min(img.width, containerWidth);
-  let targetHeight = Math.floor(targetWidth / imageRatio);
+  const targetWidth = Math.round(nativeWidth * scale);
+  const targetHeight = Math.round(nativeHeight * scale);
 
-  if (targetHeight > maxHeight) {
-    targetHeight = maxHeight;
-    targetWidth = Math.floor(targetHeight * imageRatio);
-  }
-
-  if (targetWidth > img.width) {
-    targetWidth = img.width;
-    targetHeight = img.height;
-  }
-
-  // scale canvas up for Retina displays without changing CSS display size
   const dpr = Math.max(window.devicePixelRatio || 1, 1);
   canvas.width = Math.floor(targetWidth * dpr);
   canvas.height = Math.floor(targetHeight * dpr);
@@ -61,7 +50,7 @@ function resizeCanvasToImage(){
   preview.style.width = `${targetWidth}px`;
   preview.style.height = `${targetHeight}px`;
 
-  lastSize = { width: targetWidth, height: targetHeight, dpr };
+  lastSize = { width: targetWidth, height: targetHeight, dpr, scale };
 }
 
 function draw(){
@@ -127,21 +116,8 @@ function draw(){
     currentY += lineHeight;
   });
 
-  if (previewObjectUrl) {
-    URL.revokeObjectURL(previewObjectUrl);
-    previewObjectUrl = null;
-  }
-
   try {
-    if (canvas.toBlob) {
-      canvas.toBlob((blob) => {
-        if (!blob) return;
-        previewObjectUrl = URL.createObjectURL(blob);
-        preview.src = previewObjectUrl;
-      }, 'image/png');
-    } else {
-      preview.src = canvas.toDataURL('image/png');
-    }
+    preview.src = canvas.toDataURL('image/png');
   } catch (error) {
     console.warn('Canvas export blocked by browser security:', error);
     preview.src = img.src;
