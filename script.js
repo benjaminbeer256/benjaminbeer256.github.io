@@ -70,20 +70,20 @@ function draw(){
   const fontSize = Math.max(12, Math.floor(lastSize.height * 0.03));
   ctx.font = `${fontSize}px Impact, Haettenschweiler, 'Arial Black', sans-serif`;
   ctx.textBaseline = 'middle';
-  ctx.textAlign = 'center';
+  ctx.textAlign = 'left';
 
   ctx.fillStyle = 'white';
   ctx.strokeStyle = 'black';
   ctx.lineWidth = Math.max(3, Math.floor(fontSize * 0.12));
 
-  const xCenter = lastSize.width / 2 + lastSize.width * 0.24;
+  const xBase = Math.floor(lastSize.width * 0.66);
   const yBase = Math.floor(lastSize.height * 0.56);
   const lineHeight = fontSize * 1.1;
 
   const words = overlayText.split(' ');
   const wrappedLines = [];
   let currentLine = '';
-  const maxLineWidth = lastSize.width * 0.7;
+  const maxLineWidth = lastSize.width * 0.4;
 
   words.forEach((word) => {
     const wordText = word;
@@ -111,8 +111,8 @@ function draw(){
 
   let currentY = yBase - ((wrappedLines.length - 1) * lineHeight) / 2;
   wrappedLines.forEach((line) => {
-    ctx.strokeText(line, xCenter, currentY);
-    ctx.fillText(line, xCenter, currentY);
+    ctx.strokeText(line, xBase, currentY);
+    ctx.fillText(line, xBase, currentY);
     currentY += lineHeight;
   });
 
