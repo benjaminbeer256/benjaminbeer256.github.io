@@ -76,8 +76,8 @@ function draw(){
   ctx.strokeStyle = 'black';
   ctx.lineWidth = Math.max(3, Math.floor(fontSize * 0.12));
 
-  const xBase = Math.floor(lastSize.width * 0.66);
-  const yBase = Math.floor(lastSize.height * 0.56);
+  const xBase = Math.floor(lastSize.width * 0.68);
+  const yBase = Math.floor(lastSize.height * 0.55);
   const lineHeight = fontSize * 1.1;
 
   const words = overlayText.split(' ');
