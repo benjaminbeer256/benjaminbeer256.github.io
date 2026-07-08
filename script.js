@@ -1,13 +1,15 @@
 // Load the base image (save the attachment as "mattcan.png" in the same folder)
 const IMG_SRC = 'mattcan.png';
 
-const canvas = document.getElementById('memeCanvas');
-const ctx = canvas.getContext('2d');
+const preview = document.getElementById('memePreview');
 const input = document.getElementById('nameInput');
 const updateBtn = document.getElementById('updateBtn');
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d');
 
 let img = new Image();
 let imgLoaded = false;
+let lastSize = { width: 0, height: 0 };
 
 img.onload = () => {
   imgLoaded = true;
@@ -15,109 +17,84 @@ img.onload = () => {
   draw();
 };
 img.onerror = () => {
-  // If image isn't found, show a simple placeholder message
-  const w = 700, h = 450;
-  canvas.width = w; canvas.height = h;
-  ctx.fillStyle = '#ddd'; ctx.fillRect(0,0,w,h);
-  ctx.fillStyle = '#444'; ctx.font = '20px Arial';
-  ctx.fillText('Please save the attached image as "mattcan.png" in this folder', 16, 40);
+  // if image isn't found, show a simple placeholder image
+  preview.alt = 'Please save mattcan.png in this folder';
+  preview.style.background = '#eee';
+  preview.style.width = '100%';
+  preview.style.height = '280px';
+  preview.src = '';
 };
 img.src = IMG_SRC;
 
 function resizeCanvasToImage(){
-  // Target height is 75% of the viewport height
-  const targetH = Math.max(50, Math.floor(window.innerHeight * 0.75));
-  // Start with scale based on target height
-  let scale = targetH / img.height;
-  let w = Math.floor(img.width * scale);
   const containerWidth = document.querySelector('.canvas-wrap').clientWidth;
-  // if the resulting width is wider than the container, scale down to fit container
-  if (w > containerWidth) {
-    scale = containerWidth / img.width;
-    w = Math.floor(img.width * scale);
+  const maxHeight = Math.max(50, Math.floor(window.innerHeight * 0.75));
+  const imageRatio = img.width / img.height;
+  let targetWidth = containerWidth;
+  let targetHeight = Math.floor(targetWidth / imageRatio);
+
+  if (targetHeight > maxHeight) {
+    targetHeight = maxHeight;
+    targetWidth = Math.floor(targetHeight * imageRatio);
   }
-  canvas.width = w;
-  canvas.height = Math.floor(img.height * scale);
+
+  // scale canvas up for Retina displays without changing CSS display size
+  const dpr = Math.max(window.devicePixelRatio || 1, 1);
+  canvas.width = Math.floor(targetWidth * dpr);
+  canvas.height = Math.floor(targetHeight * dpr);
+  canvas.style.width = `${targetWidth}px`;
+  canvas.style.height = `${targetHeight}px`;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  preview.width = targetWidth;
+  preview.height = targetHeight;
+  preview.style.width = `${targetWidth}px`;
+  preview.style.height = `${targetHeight}px`;
+
+  lastSize = { width: targetWidth, height: targetHeight };
 }
 
 function draw(){
-  if(!imgLoaded) return;
-  
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  if (!imgLoaded) return;
 
-  const baseText = 'MATT\nCAN';
-  const userText = input.value.trim() || 'ME';
+  if (lastSize.width === 0 || lastSize.height === 0) {
+    resizeCanvasToImage();
+  }
 
-  const fontSize = Math.max(12, Math.floor(canvas.height * 0.04));
+  ctx.clearRect(0, 0, lastSize.width, lastSize.height);
+  ctx.drawImage(img, 0, 0, lastSize.width, lastSize.height);
+
+  const baseText = 'MATT CAN';
+  const userText = (input.value.trim() || 'me').toUpperCase();
+
+  const fontSize = Math.max(12, Math.floor(lastSize.height * 0.08));
   ctx.font = `${fontSize}px Impact, Haettenschweiler, 'Arial Black', sans-serif`;
   ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
 
   ctx.fillStyle = 'white';
-  ctx.lineWidth = Math.max(3, Math.floor(fontSize * 0.12));
   ctx.strokeStyle = 'black';
+  ctx.lineWidth = Math.max(3, Math.floor(fontSize * 0.12));
 
-  const xBase = Math.floor(canvas.width * 0.3);
-  const y = Math.floor(canvas.height * 0.55);
-  const lineHeight = fontSize * 1.2; 
+  const xBase = Math.floor(lastSize.width * 0.14);
+  const yBase = Math.floor(lastSize.height * 0.56);
+  const lineHeight = fontSize * 1.1;
 
-  // 1. Draw Base Text
-  ctx.textAlign = 'left'; // Reset to left for manual centering calculations
-  const lines = baseText.split('\n');
-  const lineWidths = lines.map(line => ctx.measureText(line).width);
-  const maxLineWidth = Math.max(...lineWidths);
-
-  lines.forEach((line, index) => {
-    const currentY = y + (index * lineHeight);
-    const xOffset = (maxLineWidth - lineWidths[index]) / 2;
-    const currentX = xBase + xOffset;
-
-    ctx.strokeText(line, currentX, currentY);
-    ctx.fillText(line, currentX, currentY);
+  const lines = baseText.split(' ');
+  let currentY = yBase;
+  lines.forEach((line) => {
+    ctx.strokeText(line, xBase, currentY);
+    ctx.fillText(line, xBase, currentY);
+    currentY += lineHeight;
   });
 
-  // 2. Format and Draw User Text
-  ctx.textAlign = 'center'; // Forces text to expand left and right from the coordinate
-  
-  // Center point is 3 font sizes from the right edge of base text
-  const xUser = xBase + maxLineWidth + (fontSize * 2.7);
+  const userX = xBase + ctx.measureText(lines.join(' ')).width + fontSize * 0.5;
+  currentY = yBase + (lineHeight / 2);
+  ctx.textAlign = 'left';
+  ctx.strokeText(userText, userX, currentY);
+  ctx.fillText(userText, userX, currentY);
 
-  // Measure approximate width of 6 characters
-  const maxUserWidth = ctx.measureText('W'.repeat(6)).width;
-  const words = userText.split(' ');
-  const userLines = [];
-  let currentLine = '';
-
-  // Wrap logic
-  words.forEach(word => {
-    // Force split if a single word is excessively long
-    if (ctx.measureText(word).width > maxUserWidth) {
-      const chunks = word.match(/.{1,6}/g) || [];
-      chunks.forEach(chunk => {
-        if (currentLine) { 
-          userLines.push(currentLine.trim()); 
-          currentLine = ''; 
-        }
-        userLines.push(chunk);
-      });
-    } else {
-      const testLine = currentLine + word + ' ';
-      if (ctx.measureText(testLine).width > maxUserWidth && currentLine) {
-        userLines.push(currentLine.trim());
-        currentLine = word + ' ';
-      } else {
-        currentLine = testLine;
-      }
-    }
-  });
-  if (currentLine) userLines.push(currentLine.trim());
-
-  // Draw wrapped user text lines
-  userLines.forEach((line, index) => {
-    const currentY = y + (index * lineHeight);
-    ctx.strokeText(line, xUser, currentY);
-    ctx.fillText(line, xUser, currentY);
-  });
+  preview.src = canvas.toDataURL('image/png');
 }
 
 updateBtn.addEventListener('click', (e) => {
@@ -125,9 +102,8 @@ updateBtn.addEventListener('click', (e) => {
   draw();
 });
 
-// keep canvas responsive on resize but only redraw when image is loaded
 window.addEventListener('resize', () => {
-  if(!imgLoaded) return;
+  if (!imgLoaded) return;
   resizeCanvasToImage();
   draw();
 });
