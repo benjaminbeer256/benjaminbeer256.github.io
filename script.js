@@ -76,14 +76,14 @@ function draw(){
   ctx.strokeStyle = 'black';
   ctx.lineWidth = Math.max(3, Math.floor(fontSize * 0.12));
 
-  const xBase = Math.floor(lastSize.width * 0.66);
-  const yBase = Math.floor(lastSize.height * 0.56);
+  const xBase = Math.floor(lastSize.width * 0.68);
+  const yBase = Math.floor(lastSize.height * 0.52);
   const lineHeight = fontSize * 1.1;
 
   const words = overlayText.split(' ');
   const wrappedLines = [];
   let currentLine = '';
-  const maxLineWidth = lastSize.width * 0.4;
+  const maxLineWidth = lastSize.width * 0.32;
 
   words.forEach((word) => {
     const wordText = word;
