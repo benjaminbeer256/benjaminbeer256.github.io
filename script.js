@@ -76,7 +76,7 @@ function draw(){
   ctx.strokeStyle = 'black';
   ctx.lineWidth = Math.max(3, Math.floor(fontSize * 0.12));
 
-  const xCenter = lastSize.width / 2;
+  const xCenter = lastSize.width / 2 + lastSize.width * 0.24;
   const yBase = Math.floor(lastSize.height * 0.56);
   const lineHeight = fontSize * 1.1;
 
