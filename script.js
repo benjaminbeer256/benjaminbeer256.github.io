@@ -1,5 +1,5 @@
-// Load the base image (save the attachment as "mattcan.png" in the same folder)
-const IMG_SRC = 'mattcan.png';
+// Load the base image; embedded data URI avoids file:// security issues
+const IMG_SRC = typeof EMBEDDED_IMG_SRC !== 'undefined' ? EMBEDDED_IMG_SRC : 'mattcan.jpg';
 
 const preview = document.getElementById('memePreview');
 const input = document.getElementById('nameInput');
@@ -10,11 +10,15 @@ const ctx = canvas.getContext('2d');
 let img = new Image();
 let imgLoaded = false;
 let lastSize = { width: 0, height: 0 };
+let previewObjectUrl = null;
 
 img.onload = () => {
   imgLoaded = true;
+  preview.alt = 'Generated meme preview';
   resizeCanvasToImage();
   draw();
+  requestAnimationFrame(draw);
+  setTimeout(draw, 100);
 };
 img.onerror = () => {
   // if image isn't found, show a simple placeholder image
@@ -24,6 +28,8 @@ img.onerror = () => {
   preview.style.height = '280px';
   preview.src = '';
 };
+
+preview.src = IMG_SRC;
 img.src = IMG_SRC;
 
 function resizeCanvasToImage(){
@@ -44,14 +50,13 @@ function resizeCanvasToImage(){
   canvas.height = Math.floor(targetHeight * dpr);
   canvas.style.width = `${targetWidth}px`;
   canvas.style.height = `${targetHeight}px`;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   preview.width = targetWidth;
   preview.height = targetHeight;
   preview.style.width = `${targetWidth}px`;
   preview.style.height = `${targetHeight}px`;
 
-  lastSize = { width: targetWidth, height: targetHeight };
+  lastSize = { width: targetWidth, height: targetHeight, dpr };
 }
 
 function draw(){
@@ -61,7 +66,9 @@ function draw(){
     resizeCanvasToImage();
   }
 
-  ctx.clearRect(0, 0, lastSize.width, lastSize.height);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, lastSize.width * lastSize.dpr, lastSize.height * lastSize.dpr);
+  ctx.scale(lastSize.dpr, lastSize.dpr);
   ctx.drawImage(img, 0, 0, lastSize.width, lastSize.height);
 
   const baseText = 'MATT CAN';
@@ -94,7 +101,25 @@ function draw(){
   ctx.strokeText(userText, userX, currentY);
   ctx.fillText(userText, userX, currentY);
 
-  preview.src = canvas.toDataURL('image/png');
+  if (previewObjectUrl) {
+    URL.revokeObjectURL(previewObjectUrl);
+    previewObjectUrl = null;
+  }
+
+  try {
+    if (canvas.toBlob) {
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        previewObjectUrl = URL.createObjectURL(blob);
+        preview.src = previewObjectUrl;
+      }, 'image/png');
+    } else {
+      preview.src = canvas.toDataURL('image/png');
+    }
+  } catch (error) {
+    console.warn('Canvas export blocked by browser security:', error);
+    preview.src = img.src;
+  }
 }
 
 updateBtn.addEventListener('click', (e) => {
