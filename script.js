@@ -42,40 +42,82 @@ function resizeCanvasToImage(){
 
 function draw(){
   if(!imgLoaded) return;
-  // draw base image
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-  // draw "MATT CAN" (kept as default style) and the user name next to it
   const baseText = 'MATT\nCAN';
   const userText = input.value.trim() || 'ME';
 
-  // font sizing relative to canvas height so text scales with image height
   const fontSize = Math.max(12, Math.floor(canvas.height * 0.04));
-  const font = `${fontSize}px Impact, Haettenschweiler, 'Arial Black', sans-serif`;
-  ctx.font = font;
+  ctx.font = `${fontSize}px Impact, Haettenschweiler, 'Arial Black', sans-serif`;
   ctx.textBaseline = 'middle';
 
-  // white fill with black stroke to emulate Impact meme text
   ctx.fillStyle = 'white';
   ctx.lineWidth = Math.max(3, Math.floor(fontSize * 0.12));
   ctx.strokeStyle = 'black';
 
-  // approximate positions tuned to sit on the characters' chests
-  const xBase = Math.floor(canvas.width * 0.12);
-  const y = Math.floor(canvas.height * 0.60);
+  const xBase = Math.floor(canvas.width * 0.3);
+  const y = Math.floor(canvas.height * 0.55);
+  const lineHeight = fontSize * 1.2; 
 
-  // draw base "MATT CAN"
-  ctx.strokeText(baseText, xBase, y);
-  ctx.fillText(baseText, xBase, y);
+  // 1. Draw Base Text
+  ctx.textAlign = 'left'; // Reset to left for manual centering calculations
+  const lines = baseText.split('\n');
+  const lineWidths = lines.map(line => ctx.measureText(line).width);
+  const maxLineWidth = Math.max(...lineWidths);
 
-  // draw user text a bit to the right of baseText
-  const baseWidth = ctx.measureText(baseText).width;
-  const gap = Math.max(8, Math.floor(fontSize * 0.3));
-  const xUser = xBase + baseWidth + gap;
+  lines.forEach((line, index) => {
+    const currentY = y + (index * lineHeight);
+    const xOffset = (maxLineWidth - lineWidths[index]) / 2;
+    const currentX = xBase + xOffset;
 
-  ctx.strokeText(userText, xUser, y);
-  ctx.fillText(userText, xUser, y);
+    ctx.strokeText(line, currentX, currentY);
+    ctx.fillText(line, currentX, currentY);
+  });
+
+  // 2. Format and Draw User Text
+  ctx.textAlign = 'center'; // Forces text to expand left and right from the coordinate
+  
+  // Center point is 3 font sizes from the right edge of base text
+  const xUser = xBase + maxLineWidth + (fontSize * 2.7);
+
+  // Measure approximate width of 6 characters
+  const maxUserWidth = ctx.measureText('W'.repeat(6)).width;
+  const words = userText.split(' ');
+  const userLines = [];
+  let currentLine = '';
+
+  // Wrap logic
+  words.forEach(word => {
+    // Force split if a single word is excessively long
+    if (ctx.measureText(word).width > maxUserWidth) {
+      const chunks = word.match(/.{1,6}/g) || [];
+      chunks.forEach(chunk => {
+        if (currentLine) { 
+          userLines.push(currentLine.trim()); 
+          currentLine = ''; 
+        }
+        userLines.push(chunk);
+      });
+    } else {
+      const testLine = currentLine + word + ' ';
+      if (ctx.measureText(testLine).width > maxUserWidth && currentLine) {
+        userLines.push(currentLine.trim());
+        currentLine = word + ' ';
+      } else {
+        currentLine = testLine;
+      }
+    }
+  });
+  if (currentLine) userLines.push(currentLine.trim());
+
+  // Draw wrapped user text lines
+  userLines.forEach((line, index) => {
+    const currentY = y + (index * lineHeight);
+    ctx.strokeText(line, xUser, currentY);
+    ctx.fillText(line, xUser, currentY);
+  });
 }
 
 updateBtn.addEventListener('click', (e) => {
