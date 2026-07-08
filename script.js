@@ -17,8 +17,6 @@ img.onload = () => {
   preview.alt = 'Generated meme preview';
   resizeCanvasToImage();
   draw();
-  requestAnimationFrame(draw);
-  setTimeout(draw, 100);
 };
 img.onerror = () => {
   // if image isn't found, show a simple placeholder image
@@ -71,35 +69,56 @@ function draw(){
   ctx.scale(lastSize.dpr, lastSize.dpr);
   ctx.drawImage(img, 0, 0, lastSize.width, lastSize.height);
 
-  const baseText = 'MATT CAN';
-  const userText = (input.value.trim() || 'me').toUpperCase();
+  const overlayText = (input.value.trim() || 'me').toUpperCase();
 
-  const fontSize = Math.max(12, Math.floor(lastSize.height * 0.08));
+  const fontSize = Math.max(12, Math.floor(lastSize.height * 0.03));
   ctx.font = `${fontSize}px Impact, Haettenschweiler, 'Arial Black', sans-serif`;
   ctx.textBaseline = 'middle';
-  ctx.textAlign = 'left';
+  ctx.textAlign = 'center';
 
   ctx.fillStyle = 'white';
   ctx.strokeStyle = 'black';
   ctx.lineWidth = Math.max(3, Math.floor(fontSize * 0.12));
 
-  const xBase = Math.floor(lastSize.width * 0.14);
+  const xCenter = lastSize.width / 2 + lastSize.width * 0.25;
   const yBase = Math.floor(lastSize.height * 0.56);
   const lineHeight = fontSize * 1.1;
 
-  const lines = baseText.split(' ');
-  let currentY = yBase;
-  lines.forEach((line) => {
-    ctx.strokeText(line, xBase, currentY);
-    ctx.fillText(line, xBase, currentY);
+  const words = overlayText.split(' ');
+  const wrappedLines = [];
+  let currentLine = '';
+  const maxLineWidth = lastSize.width * 0.7;
+
+  words.forEach((word) => {
+    const wordText = word;
+    if (wordText.length > 6) {
+      const broken = wordText.match(/.{1,6}/g) || [wordText];
+      broken.forEach((chunk) => {
+        if (currentLine) {
+          wrappedLines.push(currentLine.trim());
+          currentLine = '';
+        }
+        wrappedLines.push(chunk);
+      });
+      return;
+    }
+
+    const testLine = currentLine ? `${currentLine} ${wordText}` : wordText;
+    if (ctx.measureText(testLine).width > maxLineWidth && currentLine) {
+      wrappedLines.push(currentLine.trim());
+      currentLine = wordText;
+    } else {
+      currentLine = testLine;
+    }
+  });
+  if (currentLine) wrappedLines.push(currentLine.trim());
+
+  let currentY = yBase - ((wrappedLines.length - 1) * lineHeight) / 2;
+  wrappedLines.forEach((line) => {
+    ctx.strokeText(line, xCenter, currentY);
+    ctx.fillText(line, xCenter, currentY);
     currentY += lineHeight;
   });
-
-  const userX = xBase + ctx.measureText(lines.join(' ')).width + fontSize * 0.5;
-  currentY = yBase + (lineHeight / 2);
-  ctx.textAlign = 'left';
-  ctx.strokeText(userText, userX, currentY);
-  ctx.fillText(userText, userX, currentY);
 
   if (previewObjectUrl) {
     URL.revokeObjectURL(previewObjectUrl);
