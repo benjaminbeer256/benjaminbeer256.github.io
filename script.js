@@ -34,12 +34,19 @@ function resizeCanvasToImage(){
   const containerWidth = document.querySelector('.canvas-wrap').clientWidth;
   const maxHeight = Math.max(50, Math.floor(window.innerHeight * 0.75));
   const imageRatio = img.width / img.height;
-  let targetWidth = containerWidth;
+
+  // start from the image's native dimensions, then fit to available width/height
+  let targetWidth = Math.min(img.width, containerWidth);
   let targetHeight = Math.floor(targetWidth / imageRatio);
 
   if (targetHeight > maxHeight) {
     targetHeight = maxHeight;
     targetWidth = Math.floor(targetHeight * imageRatio);
+  }
+
+  if (targetWidth > img.width) {
+    targetWidth = img.width;
+    targetHeight = img.height;
   }
 
   // scale canvas up for Retina displays without changing CSS display size
@@ -80,7 +87,7 @@ function draw(){
   ctx.strokeStyle = 'black';
   ctx.lineWidth = Math.max(3, Math.floor(fontSize * 0.12));
 
-  const xCenter = lastSize.width / 2 + lastSize.width * 0.25;
+  const xCenter = lastSize.width / 2;
   const yBase = Math.floor(lastSize.height * 0.56);
   const lineHeight = fontSize * 1.1;
 
